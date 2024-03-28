@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma, requestStatus } from "@prisma/client"
 import { TdecodedData, Tpagination } from "../../interface"
 import prisma from "../../utility/prismaClient"
 import { TdonationRequest, TgetDonor } from "./donor.interface"
@@ -116,7 +116,63 @@ const createDonorRequest = async (decoded: TdecodedData, payload: TdonationReque
 
 }
 
+const getDonationRequestion = async (decoded: TdecodedData) => {
+    const result = await prisma.request.findMany({
+        where: {
+            donorId: decoded.userId
+        },
+        select: {
+            id: true,
+            donorId: true,
+            requesterId: true,
+            phoneNumber: true,
+            dateOfDonation: true,
+            hospitalName: true,
+            hospitalAddress: true,
+            reason: true,
+            requestStatus: true,
+            createdAt: true,
+            updatedAt: true,
+            requester: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    bloodType: true,
+                    location: true,
+                    availability: true
+                }
+            }
+        }
+    })
+
+    return result
+
+}
+
+const updateDonationRequestion = async (id: string, payload: { status: requestStatus }) => {
+
+    await prisma.request.findUniqueOrThrow({
+        where: {
+            id: id
+        }
+    })
+
+    const result = await prisma.request.update({
+        where: {
+            id: id
+        },
+        data: {
+            requestStatus: payload.status
+        }
+    })
+
+    return result
+
+}
 export const donorService = {
     getDonor,
-    createDonorRequest
+    createDonorRequest,
+    getDonationRequestion,
+    updateDonationRequestion
 }

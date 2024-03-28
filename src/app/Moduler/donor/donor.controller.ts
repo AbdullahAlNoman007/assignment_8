@@ -35,8 +35,34 @@ const createDonorRequest = catchAsync(async (req, res) => {
         data: result
     })
 })
+const getDonationRequest = catchAsync(async (req, res) => {
+
+    const result = await donorService.getDonationRequestion(req.user)
+
+    sendRespone(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Donation requests retrieved successfully",
+        data: result
+    })
+})
+
+const updateDonationRequest = catchAsync(async (req, res) => {
+
+    const { requestId } = req.params
+    const result = await donorService.updateDonationRequestion(requestId, req.body)
+
+    sendRespone(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Donation request status successfully updated",
+        data: result
+    })
+})
 
 export const donorController = {
     getDonor,
-    createDonorRequest
+    createDonorRequest,
+    getDonationRequest,
+    updateDonationRequest
 }
