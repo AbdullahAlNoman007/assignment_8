@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.post('/register', validateRequest(validationSchema.userValidationSchema), userController.createUser)
 router.get('/my-profile', auth(), userController.getProfile)
-router.put('/my-profile', auth(), userController.updateProfile)
+router.put('/my-profile', auth(), validateRequest(validationSchema.userUpdateSchema), userController.updateProfile)
 
 
 export const userRouter = router

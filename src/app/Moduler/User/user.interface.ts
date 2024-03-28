@@ -12,6 +12,5 @@ export interface User {
 export interface userUpdateData {
     bio: string;
     age: number;
-    location: string;
     lastDonationDate: string;
 }

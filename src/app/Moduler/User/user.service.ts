@@ -63,25 +63,36 @@ const getProfile = async (payload: TdecodedData) => {
             email: true,
             bloodType: true,
             location: true,
+            availability: true,
             createdAt: true,
             updatedAt: true,
             userProfile: true,
         }
     })
-    const { userProfile, createdAt, updatedAt, ...rest } = result
-    return {
-        ...rest,
-        bio: userProfile?.bio,
-        age: userProfile?.age,
-        lastDonationDate: userProfile?.lastDonationDate,
-        createdAt,
-        updatedAt,
-        userProfile
-    }
+    return result
 }
 
 const updateProfile = async (decode: TdecodedData, payload: Partial<userUpdateData>) => {
 
+    await prisma.user.findUniqueOrThrow({
+        where: {
+            email: decode.email
+        }
+    })
+    await prisma.userProfile.findUniqueOrThrow({
+        where: {
+            userId: decode.userId
+        }
+    })
+
+    const updateUserProfile = await prisma.userProfile.update({
+        where: {
+            userId: decode.userId
+        },
+        data: payload
+    })
+
+    return updateUserProfile
 }
 
 export const userService = {

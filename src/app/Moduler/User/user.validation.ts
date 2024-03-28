@@ -13,7 +13,15 @@ const userValidationSchema = z.object({
         lastDonationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // Assuming date format YYYY-MM-DD
     })
 })
+const userUpdateSchema = z.object({
+    body: z.object({
+        bio: z.string().optional(),
+        age: z.number().optional(),
+        lastDonationDate: z.string().optional()
+    })
+})
 
 export const validationSchema = {
-    userValidationSchema
+    userValidationSchema,
+    userUpdateSchema
 }
