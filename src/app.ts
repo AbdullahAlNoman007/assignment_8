@@ -19,7 +19,7 @@ app.use('/api', router)
 
 app.get('/', (req: Request, res: Response) => {
     res.send({
-        Message: `Health Care server... ${config.node_env} Mode`
+        Message: `Assigment 8 ... ${config.node_env} Mode`
     })
 })
 
