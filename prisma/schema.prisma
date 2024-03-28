@@ -8,32 +8,55 @@ datasource db {
 }
 
 model User {
-  id                 String     @id @default(uuid())
-  email              String     @unique
-  password           String
-  role               UserRole
-  needPasswordChange Boolean    @default(true)
-  status             UserStatus @default(ACTIVE)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  password     String
+  bloodType    String
+  location     String
+  availability Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  UserProfile  UserProfile?
+  donor        Request[]    @relation("donor")
+  requester    Request[]    @relation("requester")
 
   @@map("users")
 }
 
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  DOCTOR
-  PATIENT
+model Request {
+  id              String        @id @default(uuid())
+  donorId         String
+  requesterId     String
+  phoneNumber     String
+  dateOfDonation  String
+  hospitalName    String
+  hospitalAddress String
+  reason          String
+  requestStatus   requestStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  donor           User          @relation("donor", fields: [donorId], references: [id])
+  requester       User          @relation("requester", fields: [requesterId], references: [id])
+
+  @@map("requests")
 }
 
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-  DELETE
+model UserProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  bio              String
+  age              Int
+  lastDonationDate DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id])
+
+  @@map("userProfiles")
 }
 
-enum Gender {
-  MALE
-  FEMALE
+enum requestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
