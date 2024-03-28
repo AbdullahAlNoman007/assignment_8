@@ -2,8 +2,8 @@ type Tpagination = {
     page: string;
     limit: string;
     skip: number;
-    orderBy: string;
-    orderSort: string;
+    sortBy: string;
+    sortOrder: string;
 }
 
 const calculatePagination = (option: Partial<Tpagination>) => {
@@ -12,15 +12,15 @@ const calculatePagination = (option: Partial<Tpagination>) => {
     const limit = Number(option.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const orderBy = option.orderBy || "createdAt";
-    const orderSort = option.orderSort || 'desc';
+    const sortBy = option.sortBy || "createdAt";
+    const sortOrder = option.sortOrder || 'desc';
 
     return {
         page,
         limit,
         skip,
-        orderBy,
-        orderSort
+        sortBy,
+        sortOrder
     }
 
 }
