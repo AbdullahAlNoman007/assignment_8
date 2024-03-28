@@ -16,15 +16,26 @@ const createUser = catchAsync(async (req, res) => {
         data: result
     })
 })
-const get = catchAsync(async (req, res) => {
+const getProfile = catchAsync(async (req, res) => {
 
 
-    const result = await userService.get()
+    const result = await userService.getProfile(req.user)
 
     sendRespone(res, {
-        statusCode: httpStatus.CREATED,
+        statusCode: httpStatus.OK,
         success: true,
-        message: "User registered successfully",
+        message: "Profile retrieved successfully",
+        data: result
+    })
+})
+const updateProfile = catchAsync(async (req, res) => {
+
+    const result = await userService.updateProfile(req.user, req.body)
+
+    sendRespone(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User profile updated successfully",
         data: result
     })
 })
@@ -33,5 +44,6 @@ const get = catchAsync(async (req, res) => {
 
 export const userController = {
     createUser,
-    get
+    getProfile,
+    updateProfile
 }

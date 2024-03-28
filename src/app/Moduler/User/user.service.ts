@@ -1,6 +1,7 @@
 import config from "../../config"
+import { TdecodedData } from "../../interface"
 import prisma from "../../utility/prismaClient"
-import { User } from "./user.interface"
+import { User, userUpdateData } from "./user.interface"
 import bcrypt from 'bcrypt'
 
 const createUserIntoDB = async (payload: User) => {
@@ -50,10 +51,11 @@ const createUserIntoDB = async (payload: User) => {
     return result
 }
 
-const get = async () => {
-    const result = await prisma.user.findUnique({
+const getProfile = async (payload: TdecodedData) => {
+
+    const result = await prisma.user.findUniqueOrThrow({
         where: {
-            email: "noman@mail.com"
+            email: payload.email
         },
         select: {
             id: true,
@@ -61,16 +63,29 @@ const get = async () => {
             email: true,
             bloodType: true,
             location: true,
-            availability: true,
             createdAt: true,
             updatedAt: true,
             userProfile: true,
         }
     })
-    return result
+    const { userProfile, createdAt, updatedAt, ...rest } = result
+    return {
+        ...rest,
+        bio: userProfile?.bio,
+        age: userProfile?.age,
+        lastDonationDate: userProfile?.lastDonationDate,
+        createdAt,
+        updatedAt,
+        userProfile
+    }
+}
+
+const updateProfile = async (decode: TdecodedData, payload: Partial<userUpdateData>) => {
+
 }
 
 export const userService = {
     createUserIntoDB,
-    get
+    getProfile,
+    updateProfile
 }

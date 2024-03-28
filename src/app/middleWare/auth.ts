@@ -11,6 +11,7 @@ const auth = () => {
     return catchAsync(async (req, res, next) => {
         let decoded;
         const token = req.headers.authorization
+
         if (!token) {
             throw new AppError(httpStatus.UNAUTHORIZED, "Please Put the Access Token")
         }
@@ -22,8 +23,7 @@ const auth = () => {
         }
         await prisma.user.findUniqueOrThrow({
             where: {
-                email: (decoded as TdecodedData).email,
-                status: 'ACTIVE'
+                email: (decoded as TdecodedData).email
             }
         })
         req.user = decoded as TdecodedData;
