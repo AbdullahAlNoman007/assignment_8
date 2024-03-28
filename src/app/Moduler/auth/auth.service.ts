@@ -4,15 +4,12 @@ import prisma from "../../utility/prismaClient"
 import { Tlogin } from "./auth.interface"
 import bcrypt from 'bcrypt'
 import config from "../../config"
-import { jwtDecode } from "jwt-decode"
-import { TdecodedData } from "../../interface"
 import token from "../../utility/Token"
 
 const loginInDB = async (payload: Tlogin) => {
     const isUserExists = await prisma.user.findUniqueOrThrow({
         where: {
-            email: payload.email,
-            status: 'ACTIVE'
+            email: payload.email
         }
     })
 
@@ -22,18 +19,16 @@ const loginInDB = async (payload: Tlogin) => {
     }
 
     const jwtPayload = {
-        email: isUserExists.email,
-        role: isUserExists.role
+        email: isUserExists.email
     }
 
     const accessToken = token(jwtPayload, config.jwt.jwt_access_token as string, config.jwt.jwt_access_expires_in as string)
 
-    const refreshToken = token(jwtPayload, config.jwt.jwt_refresh_token as string, config.jwt.jwt_refresh_expires_in as string)
-
     return {
-        accessToken,
-        refreshToken,
-        needPasswordChange: isUserExists.needPasswordChange
+        id: isUserExists.id,
+        name: isUserExists.name,
+        email: isUserExists.email,
+        token: accessToken
     };
 
 
