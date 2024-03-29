@@ -33,10 +33,29 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
                 ]
             })
         }
+        if (Object.keys(rest).includes('bloodType')) {
+
+            let bloodType: string = '';
+            const blood = rest['bloodType']?.split(' ')[0];
+            const type = rest['bloodType']?.split(' ')[1].toLowerCase();
+
+            if (type === 'positive') {
+                bloodType = blood + '+'
+            }
+            else if (type === 'negative') {
+                bloodType = blood + '-'
+            }
+            if (type === 'positive' || type === 'negative') {
+                andCondition.push({
+                    OR: [
+                        {
+                            bloodType: { equals: bloodType }
+                        }
+                    ]
+                })
+            }
+        }
     }
-    //console.dir(andCondition, { depth: 'infinity' });
-
-
 
     const whereCondition: Prisma.UserWhereInput = { AND: andCondition }
 

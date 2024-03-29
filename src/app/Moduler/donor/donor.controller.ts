@@ -6,9 +6,6 @@ import pick from "../../utility/pick";
 import { donorFilterFields, donorPaginationFields } from "./donor.const";
 
 const getDonor = catchAsync(async (req, res) => {
-    console.log(req.url);
-    console.log(req.query);
-
 
     const filter = pick(req.query, donorFilterFields);
     const options = pick(req.query, donorPaginationFields);
