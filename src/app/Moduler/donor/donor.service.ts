@@ -54,8 +54,12 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
                     ]
                 })
             }
+
         }
     }
+    //console.dir(andCondition, { depth: 'infinity' });
+
+
 
     const whereCondition: Prisma.UserWhereInput = { AND: andCondition }
 
