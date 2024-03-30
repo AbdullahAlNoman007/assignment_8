@@ -27,6 +27,8 @@ exports.donorService = void 0;
 const prismaClient_1 = __importDefault(require("../../utility/prismaClient"));
 const donor_const_1 = require("./donor.const");
 const pagination_1 = __importDefault(require("../../utility/pagination"));
+const AppError_1 = __importDefault(require("../../Error/AppError"));
+const http_status_1 = __importDefault(require("http-status"));
 const getDonor = (params, options) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { page, limit, skip, sortBy, sortOrder } = (0, pagination_1.default)(options);
@@ -36,26 +38,24 @@ const getDonor = (params, options) => __awaiter(void 0, void 0, void 0, function
         const [bloodGroup, rhFactor] = searchTerm.split(' ');
         const validBloodGroups = ['A', 'B', 'AB', 'O'];
         const validRhFactors = ['positive', 'negative'];
-        if (bloodGroup && rhFactor) {
-            if (validBloodGroups.includes(bloodGroup.toUpperCase()) && validRhFactors.includes(rhFactor.toLowerCase())) {
-                let bloodType;
-                if (rhFactor.toLowerCase() === 'positive') {
-                    bloodType = bloodGroup + '+';
-                }
-                else if (rhFactor.toLowerCase() === 'negative') {
-                    bloodType = bloodGroup + '-';
-                }
-                andCondition.push({
-                    OR: [
-                        {
-                            bloodType: {
-                                contains: bloodType,
-                                mode: 'insensitive'
-                            }
-                        }
-                    ]
-                });
+        if (bloodGroup && rhFactor && validBloodGroups.includes(bloodGroup.toUpperCase()) && validRhFactors.includes(rhFactor.toLowerCase())) {
+            let bloodType;
+            if (rhFactor.toLowerCase() === 'positive') {
+                bloodType = bloodGroup + '+';
             }
+            else if (rhFactor.toLowerCase() === 'negative') {
+                bloodType = bloodGroup + '-';
+            }
+            andCondition.push({
+                OR: [
+                    {
+                        bloodType: {
+                            contains: bloodType,
+                            mode: 'insensitive'
+                        }
+                    }
+                ]
+            });
         }
         else {
             andCondition.push({
@@ -81,22 +81,25 @@ const getDonor = (params, options) => __awaiter(void 0, void 0, void 0, function
         }
         if (Object.keys(rest).includes('bloodType')) {
             let bloodType = '';
-            const blood = (_a = rest['bloodType']) === null || _a === void 0 ? void 0 : _a.split(' ')[0];
+            const blood = (_a = rest['bloodType']) === null || _a === void 0 ? void 0 : _a.split(' ')[0].toUpperCase();
             const type = (_b = rest['bloodType']) === null || _b === void 0 ? void 0 : _b.split(' ')[1].toLowerCase();
-            if (type === 'positive') {
-                bloodType = blood + '+';
-            }
-            else if (type === 'negative') {
-                bloodType = blood + '-';
-            }
-            if (type === 'positive' || type === 'negative') {
-                andCondition.push({
-                    OR: [
-                        {
-                            bloodType: { equals: bloodType }
-                        }
-                    ]
-                });
+            const validBloodGroups = ['A', 'B', 'AB', 'O'];
+            if (validBloodGroups.includes(blood.toUpperCase())) {
+                if (type === 'positive') {
+                    bloodType = blood + '+';
+                }
+                else if (type === 'negative') {
+                    bloodType = blood + '-';
+                }
+                if (type === 'positive' || type === 'negative') {
+                    andCondition.push({
+                        OR: [
+                            {
+                                bloodType: { equals: bloodType }
+                            }
+                        ]
+                    });
+                }
             }
         }
     }
@@ -198,12 +201,15 @@ const getDonationRequestion = (decoded) => __awaiter(void 0, void 0, void 0, fun
     });
     return result;
 });
-const updateDonationRequestion = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    yield prismaClient_1.default.request.findUniqueOrThrow({
+const updateDonationRequestion = (id, payload, decoded) => __awaiter(void 0, void 0, void 0, function* () {
+    const request = yield prismaClient_1.default.request.findUniqueOrThrow({
         where: {
             id: id
         }
     });
+    if (request.donorId !== decoded.userId) {
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "You can't update another donor's request");
+    }
     const result = yield prismaClient_1.default.request.update({
         where: {
             id: id

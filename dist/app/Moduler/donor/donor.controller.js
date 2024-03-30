@@ -51,7 +51,7 @@ const getDonationRequest = (0, trycatch_1.default)((req, res) => __awaiter(void 
 }));
 const updateDonationRequest = (0, trycatch_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { requestId } = req.params;
-    const result = yield donor_service_1.donorService.updateDonationRequestion(requestId, req.body);
+    const result = yield donor_service_1.donorService.updateDonationRequestion(requestId, req.body, req.user);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,

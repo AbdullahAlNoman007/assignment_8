@@ -4,6 +4,8 @@ import prisma from "../../utility/prismaClient"
 import { TdonationRequest, TgetDonor } from "./donor.interface"
 import { donorSearchFields } from "./donor.const"
 import calculatePagination from "../../utility/pagination"
+import AppError from "../../Error/AppError"
+import httpStatus from "http-status"
 
 const getDonor = async (params: TgetDonor, options: Tpagination) => {
 
@@ -18,29 +20,28 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
         const validBloodGroups = ['A', 'B', 'AB', 'O'];
         const validRhFactors = ['positive', 'negative'];
 
-        if (bloodGroup && rhFactor) {
-            if (validBloodGroups.includes(bloodGroup.toUpperCase()) && validRhFactors.includes(rhFactor.toLowerCase())) {
+        if (bloodGroup && rhFactor && validBloodGroups.includes(bloodGroup.toUpperCase()) && validRhFactors.includes(rhFactor.toLowerCase())) {
 
-                let bloodType;
+            let bloodType;
 
-                if (rhFactor.toLowerCase() === 'positive') {
-                    bloodType = bloodGroup + '+'
-                }
-                else if (rhFactor.toLowerCase() === 'negative') {
-                    bloodType = bloodGroup + '-'
-                }
-
-                andCondition.push({
-                    OR: [
-                        {
-                            bloodType: {
-                                contains: bloodType,
-                                mode: 'insensitive'
-                            }
-                        }
-                    ]
-                })
+            if (rhFactor.toLowerCase() === 'positive') {
+                bloodType = bloodGroup + '+'
             }
+            else if (rhFactor.toLowerCase() === 'negative') {
+                bloodType = bloodGroup + '-'
+            }
+
+            andCondition.push({
+                OR: [
+                    {
+                        bloodType: {
+                            contains: bloodType,
+                            mode: 'insensitive'
+                        }
+                    }
+                ]
+            })
+
         }
         else {
             andCondition.push({
@@ -52,7 +53,6 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
                 }))
             })
         }
-
 
     }
 
@@ -70,23 +70,26 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
         if (Object.keys(rest).includes('bloodType')) {
 
             let bloodType: string = '';
-            const blood = rest['bloodType']?.split(' ')[0];
+            const blood = rest['bloodType']?.split(' ')[0].toUpperCase();
             const type = rest['bloodType']?.split(' ')[1].toLowerCase();
+            const validBloodGroups = ['A', 'B', 'AB', 'O'];
 
-            if (type === 'positive') {
-                bloodType = blood + '+'
-            }
-            else if (type === 'negative') {
-                bloodType = blood + '-'
-            }
-            if (type === 'positive' || type === 'negative') {
-                andCondition.push({
-                    OR: [
-                        {
-                            bloodType: { equals: bloodType }
-                        }
-                    ]
-                })
+            if (validBloodGroups.includes((blood as string).toUpperCase())) {
+                if (type === 'positive') {
+                    bloodType = blood + '+'
+                }
+                else if (type === 'negative') {
+                    bloodType = blood + '-'
+                }
+                if (type === 'positive' || type === 'negative') {
+                    andCondition.push({
+                        OR: [
+                            {
+                                bloodType: { equals: bloodType }
+                            }
+                        ]
+                    })
+                }
             }
 
         }
@@ -207,13 +210,16 @@ const getDonationRequestion = async (decoded: TdecodedData) => {
 
 }
 
-const updateDonationRequestion = async (id: string, payload: { status: requestStatus }) => {
+const updateDonationRequestion = async (id: string, payload: { status: requestStatus }, decoded: TdecodedData) => {
 
-    await prisma.request.findUniqueOrThrow({
+    const request = await prisma.request.findUniqueOrThrow({
         where: {
             id: id
         }
     })
+    if (request.donorId !== decoded.userId) {
+        throw new AppError(httpStatus.BAD_REQUEST, "You can't update another donor's request")
+    }
 
     const result = await prisma.request.update({
         where: {

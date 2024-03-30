@@ -47,7 +47,7 @@ const getDonationRequest = catchAsync(async (req, res) => {
 const updateDonationRequest = catchAsync(async (req, res) => {
 
     const { requestId } = req.params
-    const result = await donorService.updateDonationRequestion(requestId, req.body)
+    const result = await donorService.updateDonationRequestion(requestId, req.body, req.user)
 
     sendRespone(res, {
         success: true,
