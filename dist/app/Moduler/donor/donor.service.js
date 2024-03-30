@@ -1,35 +1,50 @@
-import { Prisma, requestStatus } from "@prisma/client"
-import { TdecodedData, Tpagination } from "../../interface"
-import prisma from "../../utility/prismaClient"
-import { TdonationRequest, TgetDonor } from "./donor.interface"
-import { donorSearchFields } from "./donor.const"
-import calculatePagination from "../../utility/pagination"
-
-const getDonor = async (params: TgetDonor, options: Tpagination) => {
-
-    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
-    const { searchTerm, ...rest } = params
-    let andCondition: Prisma.UserWhereInput[] = []
-
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.donorService = void 0;
+const prismaClient_1 = __importDefault(require("../../utility/prismaClient"));
+const donor_const_1 = require("./donor.const");
+const pagination_1 = __importDefault(require("../../utility/pagination"));
+const getDonor = (params, options) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const { page, limit, skip, sortBy, sortOrder } = (0, pagination_1.default)(options);
+    const { searchTerm } = params, rest = __rest(params, ["searchTerm"]);
+    let andCondition = [];
     if (searchTerm) {
-        const [bloodGroup, rhFactor] = searchTerm.split(' ')
-
+        const [bloodGroup, rhFactor] = searchTerm.split(' ');
         const validBloodGroups = ['A', 'B', 'AB', 'O'];
         const validRhFactors = ['positive', 'negative'];
-
         if (bloodGroup && rhFactor) {
             if (validBloodGroups.includes(bloodGroup.toUpperCase()) && validRhFactors.includes(rhFactor.toLowerCase())) {
-
                 let bloodType;
-
                 if (rhFactor.toLowerCase() === 'positive') {
-                    bloodType = bloodGroup + '+'
+                    bloodType = bloodGroup + '+';
                 }
                 else if (rhFactor.toLowerCase() === 'negative') {
-                    bloodType = bloodGroup + '-'
+                    bloodType = bloodGroup + '-';
                 }
-
                 andCondition.push({
                     OR: [
                         {
@@ -39,45 +54,40 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
                             }
                         }
                     ]
-                })
+                });
             }
         }
         else {
             andCondition.push({
-                OR: donorSearchFields.map(field => ({
+                OR: donor_const_1.donorSearchFields.map(field => ({
                     [field]: {
                         contains: params.searchTerm,
                         mode: 'insensitive'
                     }
                 }))
-            })
+            });
         }
-
-
     }
-
     if (Object.keys(rest).length > 0) {
         if (Object.keys(rest).includes('availability')) {
-            const value = Boolean(rest['availability'] === "false" ? '' : rest['availability'])
+            const value = Boolean(rest['availability'] === "false" ? '' : rest['availability']);
             andCondition.push({
                 OR: [
                     {
                         availability: { equals: value }
                     }
                 ]
-            })
+            });
         }
         if (Object.keys(rest).includes('bloodType')) {
-
-            let bloodType: string = '';
-            const blood = rest['bloodType']?.split(' ')[0];
-            const type = rest['bloodType']?.split(' ')[1].toLowerCase();
-
+            let bloodType = '';
+            const blood = (_a = rest['bloodType']) === null || _a === void 0 ? void 0 : _a.split(' ')[0];
+            const type = (_b = rest['bloodType']) === null || _b === void 0 ? void 0 : _b.split(' ')[1].toLowerCase();
             if (type === 'positive') {
-                bloodType = blood + '+'
+                bloodType = blood + '+';
             }
             else if (type === 'negative') {
-                bloodType = blood + '-'
+                bloodType = blood + '-';
             }
             if (type === 'positive' || type === 'negative') {
                 andCondition.push({
@@ -86,18 +96,13 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
                             bloodType: { equals: bloodType }
                         }
                     ]
-                })
+                });
             }
-
         }
     }
     //console.dir(andCondition, { depth: 'infinity' });
-
-
-
-    const whereCondition: Prisma.UserWhereInput = { AND: andCondition }
-
-    const data = await prisma.user.findMany({
+    const whereCondition = { AND: andCondition };
+    const data = yield prismaClient_1.default.user.findMany({
         where: whereCondition,
         skip,
         take: limit,
@@ -115,31 +120,23 @@ const getDonor = async (params: TgetDonor, options: Tpagination) => {
             updatedAt: true,
             userProfile: true,
         }
-    })
-
-    const total = await prisma.user.count();
-
+    });
+    const total = yield prismaClient_1.default.user.count();
     const meta = {
         total,
         page,
         limit
-    }
-    return { meta, data }
-}
-
-const createDonorRequest = async (decoded: TdecodedData, payload: TdonationRequest) => {
-
-    await prisma.user.findUniqueOrThrow({
+    };
+    return { meta, data };
+});
+const createDonorRequest = (decoded, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prismaClient_1.default.user.findUniqueOrThrow({
         where: {
             id: payload.donorId
         }
-    })
-
-    const data = {
-        requesterId: decoded.userId,
-        ...payload
-    }
-    const result = await prisma.request.create({
+    });
+    const data = Object.assign({ requesterId: decoded.userId }, payload);
+    const result = yield prismaClient_1.default.request.create({
         data: data,
         select: {
             id: true,
@@ -167,14 +164,11 @@ const createDonorRequest = async (decoded: TdecodedData, payload: TdonationReque
                 }
             }
         }
-    })
-
-    return result
-
-}
-
-const getDonationRequestion = async (decoded: TdecodedData) => {
-    const result = await prisma.request.findMany({
+    });
+    return result;
+});
+const getDonationRequestion = (decoded) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prismaClient_1.default.request.findMany({
         where: {
             donorId: decoded.userId
         },
@@ -201,35 +195,28 @@ const getDonationRequestion = async (decoded: TdecodedData) => {
                 }
             }
         }
-    })
-
-    return result
-
-}
-
-const updateDonationRequestion = async (id: string, payload: { status: requestStatus }) => {
-
-    await prisma.request.findUniqueOrThrow({
+    });
+    return result;
+});
+const updateDonationRequestion = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prismaClient_1.default.request.findUniqueOrThrow({
         where: {
             id: id
         }
-    })
-
-    const result = await prisma.request.update({
+    });
+    const result = yield prismaClient_1.default.request.update({
         where: {
             id: id
         },
         data: {
             requestStatus: payload.status
         }
-    })
-
-    return result
-
-}
-export const donorService = {
+    });
+    return result;
+});
+exports.donorService = {
     getDonor,
     createDonorRequest,
     getDonationRequestion,
     updateDonationRequestion
-}
+};
