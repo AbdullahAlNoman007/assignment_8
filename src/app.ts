@@ -4,7 +4,6 @@ import router from './app/router';
 import notFound from './app/middleWare/notFound';
 import globalErrorHandle from './app/middleWare/globalErrorHandle';
 import cookieParser from 'cookie-parser';
-import config from './app/config';
 
 
 const app: Application = express();
@@ -19,7 +18,7 @@ app.use('/api', router)
 
 app.get('/', (req: Request, res: Response) => {
     res.send({
-        Message: `Assigment 8 ... ${config.node_env} Mode`
+        Message: `Assigment 8 ...`
     })
 })
 

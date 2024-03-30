@@ -9,7 +9,6 @@ const router_1 = __importDefault(require("./app/router"));
 const notFound_1 = __importDefault(require("./app/middleWare/notFound"));
 const globalErrorHandle_1 = __importDefault(require("./app/middleWare/globalErrorHandle"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const config_1 = __importDefault(require("./app/config"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use((0, cookie_parser_1.default)());
@@ -18,7 +17,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use('/api', router_1.default);
 app.get('/', (req, res) => {
     res.send({
-        Message: `Assigment 8 ... ${config_1.default.node_env} Mode`
+        Message: `Assigment 8 ...`
     });
 });
 app.use(globalErrorHandle_1.default);
